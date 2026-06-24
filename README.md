@@ -44,7 +44,7 @@ Main features:
 
 Workflow screenshot placeholder:
 
-![Workflow screenshot placeholder](docs/images/workflow-placeholder.svg)
+![Workflow screenshot placeholder](docs/images/crop_and_stitch_screenshot.jpg)
 
 Before and after placeholder:
 
