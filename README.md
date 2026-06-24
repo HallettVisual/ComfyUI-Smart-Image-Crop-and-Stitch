@@ -4,7 +4,7 @@ A small ComfyUI custom node pack for smarter inpaint, detail, resize, and edit w
 
 Designed for quick and easy editing on high resolution images.
 
-It finds the active mask area, crops only what needs work, process the cropped area, then stitches the result back into the original image. If no mask is present, it can either pass through, resize the full image, or use the full image as the crop.
+It finds the active mask area, crops only what needs work, processes the cropped area, then stitches the result back into the original image. If no mask is present, it can either pass through, resize the full image, or use the full image as the crop.
 
 ## Nodes
 
@@ -62,6 +62,16 @@ Smart Image Tools
 ```
 
 The repo also includes ComfyUI Registry metadata for ComfyUI Manager discovery once it is listed by the registry.
+
+### ComfyUI Manager
+
+This repo is ready for Comfy Registry publishing. After it is published there, users can find and install it through ComfyUI Manager.
+
+Registry package id:
+
+```text
+smart-image-crop-and-stitch
+```
 
 ## Basic Workflow
 
