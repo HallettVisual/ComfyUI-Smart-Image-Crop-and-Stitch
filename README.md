@@ -44,11 +44,7 @@ Main features:
 
 Workflow screenshot placeholder:
 
-(docs/images/crop_and_stich_screenshot.jpg)
-
-Before and after placeholder:
-
-![Before and after placeholder](docs/images/before-after-placeholder.svg)
+![Before and after placeholder](docs/images/crop_and_stitch_screenshot.jpg)
 
 ## Install
 
