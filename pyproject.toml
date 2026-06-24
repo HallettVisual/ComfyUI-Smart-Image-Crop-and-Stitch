@@ -1,5 +1,5 @@
 [project]
-name = "comfyui-smart-image-crop-and-stitch"
+name = "smart-image-crop-and-stitch"
 version = "0.1.0"
 description = "Mask-driven smart crop and stitch nodes for ComfyUI inpaint and edit workflows."
 readme = "README.md"
@@ -11,9 +11,13 @@ authors = [
 dependencies = [
     "opencv-python>=4.8"
 ]
+classifiers = [
+    "Operating System :: OS Independent"
+]
 
 [project.urls]
 Repository = "https://github.com/HallettVisual/ComfyUI-Smart-Image-Crop-and-Stitch"
+"Bug Tracker" = "https://github.com/HallettVisual/ComfyUI-Smart-Image-Crop-and-Stitch/issues"
 
 [tool.comfy]
 PublisherId = "HallettVisual"
