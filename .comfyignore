@@ -1,0 +1,6 @@
+# Keep development-only files out of the Comfy Registry package.
+tests/
+__pycache__/
+.agents/
+.codex/
+*.pyc
