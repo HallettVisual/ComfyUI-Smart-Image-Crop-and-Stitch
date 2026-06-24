@@ -1,0 +1,4 @@
+{
+  "Smart Image Crop (Still)": "Detects a mask, creates a model-friendly crop, and outputs stitch metadata.",
+  "Smart Image Stitcher (Still)": "Stitches a processed crop back into the original image with blend and color-match options."
+}

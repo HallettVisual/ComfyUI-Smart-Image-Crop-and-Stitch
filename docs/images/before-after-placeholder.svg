@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#15171c"/>
+  <rect x="110" y="120" width="480" height="420" rx="10" fill="#303743"/>
+  <rect x="690" y="120" width="480" height="420" rx="10" fill="#303743"/>
+  <circle cx="350" cy="330" r="120" fill="#566a78"/>
+  <circle cx="930" cy="330" r="120" fill="#70855f"/>
+  <rect x="270" y="250" width="160" height="160" rx="6" fill="none" stroke="#e05f5f" stroke-width="10"/>
+  <rect x="850" y="250" width="160" height="160" rx="6" fill="none" stroke="#7dd37d" stroke-width="10"/>
+  <text x="350" y="590" text-anchor="middle" fill="#d8dee9" font-family="Arial, sans-serif" font-size="34">Before</text>
+  <text x="930" y="590" text-anchor="middle" fill="#d8dee9" font-family="Arial, sans-serif" font-size="34">After</text>
+  <text x="640" y="665" text-anchor="middle" fill="#d8dee9" font-family="Arial, sans-serif" font-size="32">Before and after placeholder</text>
+</svg>

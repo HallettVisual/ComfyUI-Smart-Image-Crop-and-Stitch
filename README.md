@@ -1,48 +1,58 @@
 # ComfyUI Smart Image Crop and Stitch
 
-Smart Image Crop and Stitch is a small ComfyUI custom node pack for mask-driven inpaint and edit workflows. It crops only the masked region with configurable context, sends that crop through your processing chain, then stitches the result back into the original image.
+A small ComfyUI custom node pack for smarter inpaint, detail, resize, and edit workflows.
 
-The goal is simple: spend resolution where the edit is happening, keep the surrounding image intact, and avoid manual crop math.
+It finds the active mask area, crops only what needs work, lets your workflow process that crop, then stitches the result back into the original image. If no mask is present, it can either pass through, resize the full image, or use the full image as the crop.
 
 ## Nodes
 
 ### Smart Image Crop
 
-Finds the active mask bounds, adds padding, optionally fills small mask gaps, and outputs a resized crop for downstream processing.
+Creates a clean crop from an image and mask.
+
+Main features:
+
+- detects even very light grey masks
+- turns detected mask pixels into a solid mask
+- optional fast hole filling
+- grow or shrink the mask with positive or negative pixels
+- automatic or manual output size
+- dimensions snap to model-friendly values like `1024`, `1280`, etc.
+- preview overlay with mask tint and crop border
+- no-mask modes: `Bypass`, `Resize Full Image`, `Crop Full Image`
 
 Outputs:
 
-- `crop_image`: the cropped image region
-- `crop_mask`: the matching mask
-- `stitcher_info`: placement metadata for the stitcher
-- `preview_overlay`: the original image with a crop boundary preview
-
-If the mask is empty, the node automatically becomes a pass-through. It returns the original image and marks `stitcher_info` as bypassed.
+- `crop_image`
+- `crop_mask`
+- `stitcher_info`
+- `preview_overlay`
 
 ### Smart Image Stitcher
 
-Resizes the processed crop back to its original location and blends it into the source image.
+Places the processed crop back into the original image.
 
-Features:
+Main features:
 
-- feathered edge blending
-- optional mask-based blending
-- automatic pass-through when the crop node found no mask
-- color matching against the original image region
+- blend modes: `Box Feather`, `Mask Feather`, `Hard Paste`
+- optional color match, off by default
+- can restore full-image resize results back to original size
+- can also keep the resized processed image as the final output
+- automatic bypass when the crop node is bypassed
 
-## Color Matching
+## Screenshots
 
-The stitcher includes `color_match_amount`, a value from `0.0` to `1.0`.
+Workflow screenshot placeholder:
 
-- `0.0`: disabled
-- `0.35`: default, gentle correction
-- `1.0`: full RGB mean/std matching to the original region
+![Workflow screenshot placeholder](docs/images/workflow-placeholder.svg)
 
-This is useful when the edited crop comes back with a different exposure, contrast, or color cast than the original image.
+Before and after placeholder:
 
-## Installation
+![Before and after placeholder](docs/images/before-after-placeholder.svg)
 
-Clone this repository into your ComfyUI custom nodes folder:
+## Install
+
+Clone into your ComfyUI custom nodes folder:
 
 ```powershell
 cd ComfyUI/custom_nodes
@@ -55,42 +65,33 @@ Restart ComfyUI. The nodes appear under:
 Smart Image Tools
 ```
 
+The repo also includes ComfyUI Registry metadata for ComfyUI Manager discovery once it is listed by the registry.
+
 ## Basic Workflow
 
-1. Connect your source `IMAGE` and `MASK` to `Smart Image Crop`.
-2. Send `crop_image` and `crop_mask` into your inpaint, edit, upscale, or detailer workflow.
-3. Connect the processed crop to `Smart Image Stitcher`.
-4. Connect the original image and `stitcher_info` from the crop node.
-5. Adjust feathering and color matching until the edit blends naturally.
+1. Send your source `IMAGE` and `MASK` into `Smart Image Crop`.
+2. Process `crop_image` and `crop_mask` with your inpaint, detail, upscale, or edit workflow.
+3. Send the processed image into `Smart Image Stitcher`.
+4. Connect the original image and `stitcher_info`.
+5. Use the stitcher output as your final image.
 
-## Recommended Settings
+## Useful Settings
 
-- `padding_pixels`: start with `32` to `96`
-- `min_resolution`: use `768` or `1024` for small masked details
-- `max_resolution`: use `1536` or `2048` for larger edits
-- `force_divisibility`: `64` or `128` works well for most VAE/model pipelines
-- `color_match_amount`: start at `0.25` to `0.45`
+- `mask_grow_pixels`: positive values grow the mask, negative values shrink it.
+- `patch_mask_holes`: fills enclosed holes in the mask.
+- `force_divisibility`: keeps crop sizes friendly for models and VAEs.
+- `blend_mode`: choose box feather, mask feather, or hard paste.
+- `enable_color_match`: optional color correction against the original image.
+- `no_mask_mode`: choose what happens when no mask exists.
+- `resize_full_image_output`: for no-mask resize workflows, choose original size or resized output.
 
-## Empty Mask Behavior
+## Notes
 
-When no mask pixels are detected, both nodes are bypassed automatically:
-
-- no center crop is created
-- the original image passes through unchanged
-- the stitcher ignores the processed input and returns the original image
-
-This makes the nodes safe to leave in workflows where mask generation is optional.
-
-## Development
-
-Run the smoke tests from the repository folder:
-
-```powershell
-python .\tests\test_smoke.py
-```
-
-The tests cover empty-mask bypass, tiny-crop feathering, and the color-match stitch path.
+- If `feather_pixels` is `0`, feathered modes behave like a hard paste.
+- `Resize Full Image` is useful when one workflow should handle both masked edits and full-image resize/upscale jobs.
+- Existing workflows may need nodes refreshed or re-added after input changes.
+- Example workflows can be placed in the `workflows/` folder.
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+Apache License 2.0. See [LICENSE](LICENSE).

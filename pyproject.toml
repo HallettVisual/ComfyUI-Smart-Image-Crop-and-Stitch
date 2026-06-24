@@ -1,0 +1,24 @@
+[project]
+name = "comfyui-smart-image-crop-and-stitch"
+version = "0.1.0"
+description = "Mask-driven smart crop and stitch nodes for ComfyUI inpaint and edit workflows."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "HallettVisual" }
+]
+dependencies = [
+    "opencv-python>=4.8"
+]
+
+[project.urls]
+Repository = "https://github.com/HallettVisual/ComfyUI-Smart-Image-Crop-and-Stitch"
+
+[tool.comfy]
+PublisherId = "HallettVisual"
+DisplayName = "Smart Image Crop and Stitch"
+Icon = ""
+
+[tool.black]
+line-length = 120

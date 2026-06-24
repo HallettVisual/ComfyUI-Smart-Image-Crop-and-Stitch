@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#15171c"/>
+  <rect x="120" y="140" width="260" height="120" rx="12" fill="#2a3441"/>
+  <rect x="510" y="140" width="260" height="120" rx="12" fill="#314230"/>
+  <rect x="900" y="140" width="260" height="120" rx="12" fill="#3f3038"/>
+  <rect x="120" y="420" width="260" height="120" rx="12" fill="#2a3441"/>
+  <rect x="510" y="420" width="260" height="120" rx="12" fill="#314230"/>
+  <rect x="900" y="420" width="260" height="120" rx="12" fill="#3f3038"/>
+  <path d="M380 200 C440 200 450 200 510 200" stroke="#8ea4b8" stroke-width="8" fill="none"/>
+  <path d="M770 200 C830 200 840 200 900 200" stroke="#8ea4b8" stroke-width="8" fill="none"/>
+  <path d="M380 480 C440 480 450 480 510 480" stroke="#8ea4b8" stroke-width="8" fill="none"/>
+  <path d="M770 480 C830 480 840 480 900 480" stroke="#8ea4b8" stroke-width="8" fill="none"/>
+  <text x="640" y="650" text-anchor="middle" fill="#d8dee9" font-family="Arial, sans-serif" font-size="38">Workflow screenshot placeholder</text>
+</svg>
