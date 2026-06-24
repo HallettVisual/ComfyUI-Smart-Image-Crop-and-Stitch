@@ -2,7 +2,9 @@
 
 A small ComfyUI custom node pack for smarter inpaint, detail, resize, and edit workflows.
 
-It finds the active mask area, crops only what needs work, lets your workflow process that crop, then stitches the result back into the original image. If no mask is present, it can either pass through, resize the full image, or use the full image as the crop.
+Designed for quick and easy editing on high resolution images.
+
+It finds the active mask area, crops only what needs work, process the cropped area, then stitches the result back into the original image. If no mask is present, it can either pass through, resize the full image, or use the full image as the crop.
 
 ## Nodes
 
