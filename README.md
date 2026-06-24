@@ -40,9 +40,9 @@ Main features:
 - can also keep the resized processed image as the final output
 - automatic bypass when the crop node is bypassed
 
-## Screenshots
+## Screenshot
 
-![Before and after example](docs/images/crop_and_stitch_screenshot.jpg)
+![Smart Image Crop and Stitch example](docs/images/crop_and_stich_screenshot.jpg)
 
 ## Install
 
