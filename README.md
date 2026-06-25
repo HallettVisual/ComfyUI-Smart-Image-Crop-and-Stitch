@@ -1,9 +1,9 @@
 # ComfyUI Smart Image Crop and Stitch
 
 A small ComfyUI custom node pack for faster inpaint, detail, resize, and edit workflows.  
-Inspired by https://github.com/lquesada/ComfyUI-Inpaint-CropAndStitch which hasn't been updated in two years.
+Inspired by https://github.com/lquesada/ComfyUI-Inpaint-CropAndStitch
 
-This adds new features, (see below) designed for quick and automatic editing on high resolution images.
+This adds new features, (see below) designed for quick and automatic scaling to process small areas on high resolution images.
 
 It takes the active mask area, automatically crops what needs processing, then stitches the result back into the original image. If no mask is present, it can either pass through, resize the full image, or use the full image as the crop.
 
