@@ -20,7 +20,7 @@ Repository = "https://github.com/HallettVisual/ComfyUI-Smart-Image-Crop-and-Stit
 "Bug Tracker" = "https://github.com/HallettVisual/ComfyUI-Smart-Image-Crop-and-Stitch/issues"
 
 [tool.comfy]
-PublisherId = "HallettVisual"
+PublisherId = "hallettvisual"
 DisplayName = "Smart Image Crop and Stitch"
 Icon = ""
 
