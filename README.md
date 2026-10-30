@@ -6,6 +6,12 @@ Designed for quick and easy editing on high resolution images.
 
 It finds the active mask area, crops only what needs work, processes the cropped area, then stitches the result back into the original image. If no mask is present, it can either pass through, resize the full image, or use the full image as the crop.
 
+## What's new in v2
+
+Paint the mask on the node, edit, stitch, compare, and send the result back to the plate for the next edit, all in one workflow.
+
+![Smart Image Crop and Stitch v2](docs/images/v2_overview.jpg)
+
 ## Nodes
 
 ### Send to Load Image
