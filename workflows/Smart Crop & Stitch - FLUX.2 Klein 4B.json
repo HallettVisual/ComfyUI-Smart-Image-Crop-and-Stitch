@@ -1,0 +1,377 @@
+{
+  "2": {
+    "inputs": {
+      "image": "smart_crop_example.png",
+      "mask_file": "smart_masks/mask_k9plate01.png"
+    },
+    "class_type": "SmartLoadImageMaskPaint",
+    "_meta": {
+      "title": "Plate · paint the area to edit"
+    }
+  },
+  "3": {
+    "inputs": {
+      "resolution_mode": "Automatic",
+      "max_resolution": 2048,
+      "min_resolution": 1024,
+      "manual_width": 1024,
+      "manual_height": 1024,
+      "mask_grow_pixels": 0,
+      "patch_mask_holes": true,
+      "no_mask_mode": "Resize Full Image",
+      "force_divisibility": 64,
+      "context_padding": 16,
+      "image": [
+        "2",
+        0
+      ],
+      "mask": [
+        "2",
+        1
+      ]
+    },
+    "class_type": "SmartImageCrop",
+    "_meta": {
+      "title": "Smart Image Crop (Still)"
+    }
+  },
+  "4": {
+    "inputs": {
+      "images": [
+        "3",
+        3
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Crop preview (green box)",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "5": {
+    "inputs": {
+      "feather_pixels": 0,
+      "blend_mode": "Mask Feather",
+      "resize_full_image_output": "Restore Original Size",
+      "enable_color_match": true,
+      "color_match_amount": 0.16,
+      "feather_mode": "Auto",
+      "original_image": [
+        "2",
+        0
+      ],
+      "processed_image": [
+        "23",
+        0
+      ],
+      "stitcher_info": [
+        "3",
+        2
+      ],
+      "mask": [
+        "3",
+        1
+      ]
+    },
+    "class_type": "SmartImageStitcher",
+    "_meta": {
+      "title": "Smart Image Stitcher (Still)"
+    }
+  },
+  "6": {
+    "inputs": {
+      "target_node_id": 2,
+      "auto_send": false,
+      "filename_prefix": "SmartCrop_Klein4B",
+      "image": [
+        "5",
+        0
+      ]
+    },
+    "class_type": "SmartSendToLoadImage",
+    "_meta": {
+      "title": "Save + Send to Plate"
+    }
+  },
+  "7": {
+    "inputs": {
+      "image_a": [
+        "5",
+        0
+      ],
+      "image_b": [
+        "2",
+        0
+      ]
+    },
+    "class_type": "SmartImageComparer",
+    "_meta": {
+      "title": "Image Comparer (Smart)"
+    }
+  },
+  "8": {
+    "inputs": {
+      "text": "Remove the tall tower from the skyline. ",
+      "clip": [
+        "11",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Prompt",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "9": {
+    "inputs": {
+      "conditioning": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "ConditioningZeroOut",
+    "_meta": {
+      "title": "Conditioning Zero Out",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "10": {
+    "inputs": {
+      "unet_name": "flux-2-klein-4b-fp8.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "11": {
+    "inputs": {
+      "clip_name": "qwen_3_4b.safetensors",
+      "type": "flux2",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Load CLIP",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "12": {
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "13": {
+    "inputs": {
+      "pixels": [
+        "3",
+        0
+      ],
+      "vae": [
+        "12",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "14": {
+    "inputs": {
+      "conditioning": [
+        "8",
+        0
+      ],
+      "latent": [
+        "13",
+        0
+      ]
+    },
+    "class_type": "ReferenceLatent",
+    "_meta": {
+      "title": "Reference (positive)",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "15": {
+    "inputs": {
+      "conditioning": [
+        "9",
+        0
+      ],
+      "latent": [
+        "13",
+        0
+      ]
+    },
+    "class_type": "ReferenceLatent",
+    "_meta": {
+      "title": "Reference (negative)",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "16": {
+    "inputs": {
+      "image": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "GetImageSize",
+    "_meta": {
+      "title": "Get Image Size",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "17": {
+    "inputs": {
+      "width": [
+        "16",
+        0
+      ],
+      "height": [
+        "16",
+        1
+      ],
+      "batch_size": 1
+    },
+    "class_type": "EmptyFlux2LatentImage",
+    "_meta": {
+      "title": "Empty Flux 2 Latent",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "18": {
+    "inputs": {
+      "steps": 4,
+      "width": [
+        "16",
+        0
+      ],
+      "height": [
+        "16",
+        1
+      ]
+    },
+    "class_type": "Flux2Scheduler",
+    "_meta": {
+      "title": "Flux2Scheduler",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "19": {
+    "inputs": {
+      "noise_seed": 179786962511968
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "20": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "21": {
+    "inputs": {
+      "cfg": 1,
+      "model": [
+        "10",
+        0
+      ],
+      "positive": [
+        "14",
+        0
+      ],
+      "negative": [
+        "15",
+        0
+      ]
+    },
+    "class_type": "CFGGuider",
+    "_meta": {
+      "title": "CFG Guider",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "22": {
+    "inputs": {
+      "noise": [
+        "19",
+        0
+      ],
+      "guider": [
+        "21",
+        0
+      ],
+      "sampler": [
+        "20",
+        0
+      ],
+      "sigmas": [
+        "18",
+        0
+      ],
+      "latent_image": [
+        "17",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "23": {
+    "inputs": {
+      "samples": [
+        "22",
+        0
+      ],
+      "vae": [
+        "12",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  }
+}

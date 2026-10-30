@@ -40,12 +40,13 @@ class SmartImageCrop:
             "manual_height": ("INT", {"default": 1024, "min": 64, "max": 8192, "step": 8}),
             
             # Mask shaping
-            "mask_grow_pixels": ("INT", {"default": 32, "min": -1024, "max": 1024, "step": 8, "tooltip": "Grow or shrink the detected mask before cropping. Positive grows, negative shrinks."}),
+            "mask_grow_pixels": ("INT", {"default": 0, "min": -1024, "max": 1024, "step": 8, "tooltip": "Grow or shrink the detected mask before cropping. Positive grows, negative shrinks."}),
             
             "patch_mask_holes": ("BOOLEAN", {"default": True, "tooltip": "Fills small holes and gaps in the detected mask to ensure a solid shape."}),
             "no_mask_mode": (["Bypass", "Resize Full Image", "Crop Full Image"], {"default": "Bypass", "tooltip": "What to do when no mask pixels are detected."}),
             
             "force_divisibility": ([8, 16, 32, 64, 112, 128, 256], {"default": 128, "tooltip": "Ensure output dimensions are divisible by this number (crucial for VAEs)"}),
+            "context_padding": ("INT", {"default": 16, "min": 0, "max": 4096, "step": 8, "tooltip": "Extra surrounding pixels added around the mask bounds. Gives the model scene context and leaves room for the stitch feather. The crop mask is not grown."}),
         }}
 
     RETURN_TYPES = ("IMAGE", "MASK", "DICT", "IMAGE")
@@ -149,7 +150,7 @@ class SmartImageCrop:
             tw = _snap_up(th * w / h, divisible_by)
         return max(divisible_by, tw), max(divisible_by, th)
 
-    def run(self, image, mask, resolution_mode, max_resolution, min_resolution, manual_width, manual_height, mask_grow_pixels, patch_mask_holes, no_mask_mode, force_divisibility):
+    def run(self, image, mask, resolution_mode, max_resolution, min_resolution, manual_width, manual_height, mask_grow_pixels, patch_mask_holes, no_mask_mode, force_divisibility, context_padding=0):
         
         # 1. Prepare Inputs
         img = _to_bhwc(image).contiguous()
@@ -259,12 +260,12 @@ class SmartImageCrop:
             
             x, y, w, h = bbox
             
-            # B. Use the grown/shrunk mask bounds as the crop context.
+            # B. Use the grown/shrunk mask bounds plus context padding as the crop region.
             cx = x + w / 2
             cy = y + h / 2
-            
-            new_w = w
-            new_h = h
+
+            new_w = w + 2 * context_padding
+            new_h = h + 2 * context_padding
             
             # C. Determine Crop Region & Target Resolution
             if resolution_mode == "Automatic":

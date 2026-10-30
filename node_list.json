@@ -1,4 +1,7 @@
 {
   "Smart Image Crop (Still)": "Detects a mask, creates a model-friendly crop, and outputs stitch metadata.",
-  "Smart Image Stitcher (Still)": "Stitches a processed crop back into the original image with blend and color-match options."
+  "Smart Image Stitcher (Still)": "Stitches a processed crop back into the original image with blend and color-match options.",
+  "Load Image (Mask Paint)": "Load Image with a mask painter built into the node: brush, erase, rect marquee and size stamps.",
+  "Send to Load Image": "Saves like Save Image and loads the result back into a chosen Load Image node.",
+  "Image Comparer (Smart)": "Hover slider A/B comparison with Send and Save results buttons."
 }

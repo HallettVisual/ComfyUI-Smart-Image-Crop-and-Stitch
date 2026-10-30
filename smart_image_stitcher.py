@@ -6,6 +6,17 @@ from .common_image import (
     _edge_pad, _color_match_moments
 )
 
+
+def _box_feather(h, w, feather_pixels, device):
+    mask = torch.ones((1, h, w), dtype=torch.float32, device=device)
+    # Zero band of the full blur radius so the blurred edge actually reaches zero.
+    margin = feather_pixels
+    mask[:, :margin, :] = 0
+    mask[:, -margin:, :] = 0
+    mask[:, :, :margin] = 0
+    mask[:, :, -margin:] = 0
+    return _gaussian_blur(mask, blur_px=feather_pixels)
+
 class SmartImageStitcher:
     @classmethod
     def INPUT_TYPES(cls):
@@ -14,11 +25,12 @@ class SmartImageStitcher:
                 "original_image": ("IMAGE",),
                 "processed_image": ("IMAGE",),
                 "stitcher_info": ("DICT",),
-                "feather_pixels": ("INT", {"default": 32, "min": 0, "max": 256, "step": 1}),
+                "feather_pixels": ("INT", {"default": 32, "min": 0, "max": 256, "step": 1, "tooltip": "Feather width in original-image pixels. Only used when feather_mode is Pixels."}),
                 "blend_mode": (["Box Feather", "Mask Feather", "Hard Paste"], {"default": "Box Feather", "tooltip": "Choose the stitch mask. Feather amount applies to both box and mask feather modes."}),
                 "resize_full_image_output": (["Restore Original Size", "Keep Resized Image"], {"default": "Restore Original Size", "tooltip": "Only affects Crop node no-mask mode: Resize Full Image."}),
                 "enable_color_match": ("BOOLEAN", {"default": False, "tooltip": "When enabled, shifts the processed crop toward the original region's color and contrast before stitching."}),
                 "color_match_amount": ("FLOAT", {"default": 0.35, "min": 0.0, "max": 1.0, "step": 0.01, "tooltip": "Matches the processed crop color statistics toward the original image before stitching. 0 disables it, 1 applies full correction."}),
+                "feather_mode": (["Auto", "Pixels"], {"default": "Auto", "tooltip": "Auto scales the feather to the crop size (about 6% of its short side), so a 50px face gets a light soft edge and a large region gets a wide blend. Pixels uses feather_pixels."}),
             },
             "optional": {
                 "mask": ("MASK",),
@@ -29,10 +41,13 @@ class SmartImageStitcher:
     FUNCTION = "stitch"
     CATEGORY = "Smart Image Tools"
 
-    def stitch(self, original_image, processed_image, stitcher_info, feather_pixels, blend_mode="Box Feather", resize_full_image_output="Restore Original Size", enable_color_match=False, color_match_amount=0.35, mask=None):
+    def stitch(self, original_image, processed_image, stitcher_info, feather_pixels, blend_mode="Box Feather", resize_full_image_output="Restore Original Size", enable_color_match=False, color_match_amount=0.35, feather_mode="Auto", mask=None):
         
         base = _to_bhwc(original_image).contiguous().clone() # Clone to avoid modifying original input in memory
         processed = _to_bhwc(processed_image).contiguous()
+        # Some edit VAEs (Qwen Image 2.1) decode RGBA; paste only the channels the original has.
+        if processed.shape[-1] > base.shape[-1]:
+            processed = processed[..., :base.shape[-1]]
 
         if not stitcher_info or stitcher_info.get("bypass", False):
             return (base,)
@@ -77,35 +92,32 @@ class SmartImageStitcher:
             # The AI gave us a high-res image. We must shrink it back to the original slot.
             # "area" interpolation is best for downscaling.
             patch_resized = _resize_img(patch, w, h, mode="area")
-            
+
+            if feather_mode == "Auto":
+                feather = max(2, round(min(w, h) * 0.06))
+            else:
+                # Cap the feather so small crops are not faded away entirely.
+                feather = min(feather_pixels, min(w, h) // 4)
+
             # 2. Prepare blending mask.
             if blend_mode == "Mask Feather" and mask_input is not None:
                 mask_idx = b % mask_input.shape[0]
                 curr_mask = mask_input[mask_idx:mask_idx+1]
-                
+
                 # Resize mask to fit the destination slot (w, h)
                 mask_resized = _resize_mask(curr_mask, w, h)
-                
-                # Apply feathering to the mask if requested
-                if feather_pixels > 0:
-                    mask_resized = _gaussian_blur(mask_resized, blur_px=feather_pixels)
-                
+
+                # Masks usually touch the crop border, so also fade to zero at the box edge to avoid a hard seam.
+                if feather > 0:
+                    mask_resized = _gaussian_blur(mask_resized, blur_px=feather)
+                    mask_resized = mask_resized * _box_feather(h, w, feather, base.device)
+
                 mask_tensor = mask_resized.unsqueeze(-1)
-                
+
+            elif blend_mode == "Box Feather" and feather > 0:
+                mask_tensor = _box_feather(h, w, feather, base.device).unsqueeze(-1)
             else:
                 mask_tensor = torch.ones((1, h, w, 1), dtype=torch.float32, device=base.device)
-                
-                if blend_mode == "Box Feather" and feather_pixels > 0:
-                    margin = feather_pixels // 2
-                    if margin > 0:
-                         mask_tensor[:, :margin, :, :] = 0
-                         mask_tensor[:, -margin:, :, :] = 0
-                         mask_tensor[:, :, :margin, :] = 0
-                         mask_tensor[:, :, -margin:, :] = 0
-                    
-                    mask_bhw = mask_tensor.squeeze(-1)
-                    mask_blurred = _gaussian_blur(mask_bhw, blur_px=feather_pixels)
-                    mask_tensor = mask_blurred.unsqueeze(-1)
 
             if enable_color_match and color_match_amount > 0:
                 reference_patch, _ = _edge_pad(base[b:b+1], x, y, w, h)
