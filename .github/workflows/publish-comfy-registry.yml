@@ -2,11 +2,18 @@ name: Publish to Comfy Registry
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "pyproject.toml"
 
 jobs:
   publish-node:
     name: Publish custom node
     runs-on: ubuntu-latest
+    # Forks have no REGISTRY_ACCESS_TOKEN secret, so only publish from the main repo.
+    if: ${{ github.repository_owner == 'HallettVisual' }}
     steps:
       - name: Check out code
         uses: actions/checkout@v4
