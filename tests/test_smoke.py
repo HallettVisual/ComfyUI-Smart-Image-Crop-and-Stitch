@@ -434,6 +434,68 @@ class SmartImageToolsSmokeTest(unittest.TestCase):
         self.assertEqual(ui["a_images"][0]["type"], "temp")
         self.assertEqual(ImageComparer().compare()["ui"], {"a_images": [], "b_images": []})
 
+    def _crop_large_mask(self, **kwargs):
+        image = torch.rand(1, 3000, 4000, 3)
+        mask = torch.zeros(1, 3000, 4000)
+        mask[:, 500:2500, 1000:3000] = 1.0
+        return image, mask, SmartImageCrop().run(
+            image=image,
+            mask=mask,
+            resolution_mode="Automatic",
+            max_resolution=2048,
+            min_resolution=1024,
+            manual_width=1024,
+            manual_height=1024,
+            mask_grow_pixels=0,
+            patch_mask_holes=False,
+            no_mask_mode="Bypass",
+            force_divisibility=64,
+            **kwargs,
+        )
+
+    def test_max_megapixels_caps_large_crop_and_still_stitches(self):
+        _, _, (uncapped, _, _, _) = self._crop_large_mask()
+        self.assertEqual(uncapped.shape[1] * uncapped.shape[2], 1984 * 1984)
+
+        image, mask, (crop_image, crop_mask, info, _) = self._crop_large_mask(max_megapixels=1.5)
+        height, width = crop_image.shape[1:3]
+        self.assertLessEqual(width * height, 1_500_000)
+        self.assertEqual((width % 64, height % 64), (0, 0))
+        self.assertEqual(info["target_w"], [width])
+
+        result = SmartImageStitcher().stitch(image, crop_image, info, 0, blend_mode="Mask Feather", mask=crop_mask)[0]
+        self.assertEqual(tuple(result.shape), tuple(image.shape))
+        # The crop is the original pixels, so stitching it back straight changes little despite the downscale.
+        self.assertLess(float((result - image).abs().mean()), 0.2)
+
+    def test_max_megapixels_leaves_small_crops_alone(self):
+        image = torch.rand(1, 512, 512, 3)
+        mask = torch.zeros(1, 512, 512)
+        mask[:, 240:260, 240:260] = 1.0
+        crop_image = SmartImageCrop().run(
+            image=image,
+            mask=mask,
+            resolution_mode="Automatic",
+            max_resolution=2048,
+            min_resolution=1024,
+            manual_width=1024,
+            manual_height=1024,
+            mask_grow_pixels=0,
+            patch_mask_holes=False,
+            no_mask_mode="Bypass",
+            force_divisibility=64,
+            max_megapixels=2.0,
+        )[0]
+        self.assertEqual(tuple(crop_image.shape[1:3]), (1024, 1024))
+
+    def test_large_image_preview_is_smaller_and_shows_the_crop(self):
+        _, _, (_, _, _, overlay) = self._crop_large_mask()
+        self.assertEqual(tuple(overlay.shape), (1, 1536, 2048, 3))
+        # Green border and red tint land where the 4000 px image's crop and mask scale down to.
+        self.assertGreater(float(overlay[0, 760, 1024:1100, 0].mean()), 0.0)
+        border = overlay[0, 256:1280, :, 1] == 1.0
+        self.assertTrue(bool(border.all(dim=0).any()))
+
 
 if __name__ == "__main__":
     unittest.main()

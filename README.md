@@ -108,6 +108,7 @@ smart-image-crop-and-stitch
 - `mask_grow_pixels`: positive values grow the mask, negative values shrink it.
 - `patch_mask_holes`: fills enclosed holes in the mask.
 - `context_padding`: extra pixels around the mask bounds for scene context and stitch feather room. Use at least `feather_pixels`.
+- `max_megapixels`: the largest crop sent to the model. Lower it if you run out of VRAM: try `1.0`-`1.5` on 8 GB cards. `0` means no limit.
 - `force_divisibility`: keeps crop sizes friendly for models and VAEs.
 - `blend_mode`: choose box feather, mask feather, or hard paste.
 - `feather_mode`: `Auto` sizes the soft edge to the crop (small faces get a light edge, large regions a wide blend). `Pixels` uses `feather_pixels`.

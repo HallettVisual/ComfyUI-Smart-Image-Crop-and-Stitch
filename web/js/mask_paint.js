@@ -45,6 +45,8 @@ function setupPainter(node) {
     maskWidget.hidden = true;
     maskWidget.computeSize = () => [0, -4];
     node.properties.maskKey ??= Math.random().toString(36).slice(2, 10);
+    // The painter is the preview. Nodes 2.0 would otherwise add its own below it and squeeze the painter.
+    node.hideOutputImages = true;
 
     let mode = "brush";
     let size = 40;
@@ -88,7 +90,7 @@ function setupPainter(node) {
         showBtn.textContent = hidden ? "Hide" : "Show";
     });
     bar.append(brushBtn, eraseBtn, rectBtn, sizeInput, sizeLabel, stampSelect,
-        button("Undo", "Undo last stroke", () => { if (undo.length) { ctx.putImageData(undo.pop(), 0, 0); scheduleSave(); } }),
+        button("Undo", "Undo last stroke", () => { if (undo.length) { popUndo(); scheduleSave(); } }),
         button("Invert", "Invert the mask", () => {
             pushUndo();
             ctx.globalCompositeOperation = "xor";
@@ -139,9 +141,23 @@ function setupPainter(node) {
         requestAnimationFrame(fit);
     };
 
+    // Undo keeps only the mask's alpha, a quarter of the full RGBA snapshot, which adds up on 8K images.
     function pushUndo() {
-        undo.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const alpha = new Uint8Array(data.length / 4);
+        for (let i = 0; i < alpha.length; i++) alpha[i] = data[i * 4 + 3];
+        undo.push(alpha);
         if (undo.length > UNDO_STEPS) undo.shift();
+    }
+
+    function popUndo() {
+        const alpha = undo.pop();
+        const d = new ImageData(canvas.width, canvas.height);
+        for (let i = 0; i < alpha.length; i++) {
+            d.data[i * 4] = 255;
+            d.data[i * 4 + 3] = alpha[i];
+        }
+        ctx.putImageData(d, 0, 0);
     }
 
     function toImage(e) {
@@ -320,7 +336,8 @@ function setupPainter(node) {
         tmp.getContext("2d").putImageData(out, 0, 0);
         const blob = await new Promise((r) => tmp.toBlob(r, "image/png"));
         const body = new FormData();
-        body.append("image", blob, `mask_${node.properties.maskKey}.png`);
+        // The node id keeps two painters apart when the key was copied along with the node.
+        body.append("image", blob, `mask_${node.properties.maskKey}_${node.id}.png`);
         body.append("subfolder", "smart_masks");
         body.append("type", "input");
         body.append("overwrite", "true");

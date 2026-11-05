@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0
+
+- Added `max_megapixels` to Smart Image Crop to limit the crop sent to the model on lower-VRAM cards. Off by default, so existing workflows behave the same.
+- Mask Paint: fixed the painter being squeezed by a second image preview with Nodes 2.0.
+- Mask Paint: fixed two painters sharing a mask file when one was copied from the other, which let the Reference mask replace the Plate mask. New masks are saved per node.
+- Mask Paint: undo uses a quarter of the memory on large images.
+- Smart Image Crop: `preview_overlay` is limited to 2048 px on the long side, saving memory and preview time on very large images.
+
 ## 2.0.0
 
 - Added automatic empty-mask pass-through behavior for crop and stitch nodes.

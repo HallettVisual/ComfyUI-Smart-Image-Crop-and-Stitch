@@ -21,6 +21,26 @@ def _snap_up(value, divisible_by):
 def _snap_down(value, divisible_by):
     return max(divisible_by, int(math.floor(float(value) / divisible_by) * divisible_by))
 
+
+def _cap_megapixels(w, h, max_megapixels, divisible_by):
+    if max_megapixels <= 0 or w * h <= max_megapixels * 1_000_000:
+        return w, h
+    scale = math.sqrt(max_megapixels * 1_000_000 / (w * h))
+    return _snap_down(w * scale, divisible_by), _snap_down(h * scale, divisible_by)
+
+
+# The preview only needs to show the crop box, so very large images are previewed smaller.
+PREVIEW_MAX_SIDE = 2048
+
+
+def _preview_base(img):
+    _, h, w, _ = img.shape
+    scale = min(1.0, PREVIEW_MAX_SIDE / max(h, w))
+    if scale == 1.0:
+        return img.clone(), scale
+    return _resize_img(img, max(1, round(w * scale)), max(1, round(h * scale)), mode="area"), scale
+
+
 class SmartImageCrop:
     @classmethod
     def INPUT_TYPES(cls):
@@ -47,6 +67,9 @@ class SmartImageCrop:
             
             "force_divisibility": ([8, 16, 32, 64, 112, 128, 256], {"default": 128, "tooltip": "Ensure output dimensions are divisible by this number (crucial for VAEs)"}),
             "context_padding": ("INT", {"default": 16, "min": 0, "max": 4096, "step": 8, "tooltip": "Extra surrounding pixels added around the mask bounds. Gives the model scene context and leaves room for the stitch feather. The crop mask is not grown."}),
+        },
+        "optional": {
+            "max_megapixels": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 64.0, "step": 0.1, "tooltip": "Largest size sent to the model in Automatic mode, in megapixels, overriding min_resolution when needed. Lower this if you run out of VRAM: try 1.0-1.5 on 8 GB cards. 0 means no limit."}),
         }}
 
     RETURN_TYPES = ("IMAGE", "MASK", "DICT", "IMAGE")
@@ -150,7 +173,7 @@ class SmartImageCrop:
             tw = _snap_up(th * w / h, divisible_by)
         return max(divisible_by, tw), max(divisible_by, th)
 
-    def run(self, image, mask, resolution_mode, max_resolution, min_resolution, manual_width, manual_height, mask_grow_pixels, patch_mask_holes, no_mask_mode, force_divisibility, context_padding=0):
+    def run(self, image, mask, resolution_mode, max_resolution, min_resolution, manual_width, manual_height, mask_grow_pixels, patch_mask_holes, no_mask_mode, force_divisibility, context_padding=0, max_megapixels=0.0):
         
         # 1. Prepare Inputs
         img = _to_bhwc(image).contiguous()
@@ -171,6 +194,7 @@ class SmartImageCrop:
 
             if no_mask_mode == "Resize Full Image":
                 tw, th = self._target_size_from_max(W, H, max_resolution, force_divisibility)
+                tw, th = _cap_megapixels(tw, th, max_megapixels, force_divisibility)
                 resized = _resize_img(img, tw, th, mode="bicubic")
                 resized_mask = torch.ones((B, th, tw), device=img.device, dtype=msk.dtype)
                 stitcher_info = {
@@ -186,7 +210,7 @@ class SmartImageCrop:
                     "original_size": (W, H),
                     "full_image_resize": True,
                 }
-                return (resized, resized_mask, stitcher_info, img.clone())
+                return (resized, resized_mask, stitcher_info, _preview_base(img)[0])
 
             if no_mask_mode == "Crop Full Image":
                 full_mask = torch.ones((B, H, W), device=img.device, dtype=msk.dtype)
@@ -203,7 +227,7 @@ class SmartImageCrop:
                     "original_size": (W, H),
                     "full_image_resize": False,
                 }
-                return (img, full_mask, stitcher_info, img.clone())
+                return (img, full_mask, stitcher_info, _preview_base(img)[0])
 
             stitcher_info = {
                 "bypass": True,
@@ -218,7 +242,7 @@ class SmartImageCrop:
                 "original_size": (W, H),
                 "full_image_resize": False,
             }
-            return (img, passthrough_mask, stitcher_info, img.clone())
+            return (img, passthrough_mask, stitcher_info, _preview_base(img)[0])
         
         crops = []
         crop_masks = []
@@ -234,7 +258,8 @@ class SmartImageCrop:
         stitch_target_h = []
         
         # Overlay for previewing
-        overlay = img.clone()
+        overlay, preview_scale = _preview_base(img)
+        PH, PW = overlay.shape[1], overlay.shape[2]
         debug_color = torch.tensor([0.0, 1.0, 0.0], device=img.device) # Green box
 
         for b in range(B):
@@ -308,7 +333,9 @@ class SmartImageCrop:
                         th = int(round(target_h / force_divisibility) * force_divisibility)
                         tw = max(force_divisibility, tw)
                         th = max(force_divisibility, th)
-                
+
+                tw, th = _cap_megapixels(tw, th, max_megapixels, force_divisibility)
+
             else:
                 tw = _snap_up(manual_width, force_divisibility)
                 th = _snap_up(manual_height, force_divisibility)
@@ -360,12 +387,14 @@ class SmartImageCrop:
             stitch_target_h.append(th)
             
             # Draw preview: red mask tint plus green crop border.
-            mask_preview = msk[mask_idx, y:y+h, x:x+w].unsqueeze(-1)
+            px = int(x * preview_scale); py = int(y * preview_scale)
+            pw = max(1, min(PW - px, round(w * preview_scale))); ph = max(1, min(PH - py, round(h * preview_scale)))
+            mask_preview = _resize_mask(msk[mask_idx:mask_idx+1, y:y+h, x:x+w], pw, ph)[0].unsqueeze(-1)
             red = torch.tensor([1.0, 0.0, 0.0], device=img.device, dtype=img.dtype)
-            overlay[b, y:y+h, x:x+w, :] = torch.lerp(overlay[b, y:y+h, x:x+w, :], red, mask_preview * 0.35)
+            overlay[b, py:py+ph, px:px+pw, :] = torch.lerp(overlay[b, py:py+ph, px:px+pw, :], red, mask_preview * 0.35)
 
-            dx = max(0, crop_x); dy = max(0, crop_y)
-            dw = min(W - dx, crop_w); dh = min(H - dy, crop_h)
+            dx = max(0, int(crop_x * preview_scale)); dy = max(0, int(crop_y * preview_scale))
+            dw = min(PW - dx, round(crop_w * preview_scale)); dh = min(PH - dy, round(crop_h * preview_scale))
             if dw > 0 and dh > 0:
                 overlay[b, dy:dy+2, dx:dx+dw, :] = debug_color
                 overlay[b, dy+dh-2:dy+dh, dx:dx+dw, :] = debug_color
