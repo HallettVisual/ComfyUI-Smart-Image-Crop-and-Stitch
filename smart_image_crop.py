@@ -52,7 +52,7 @@ class SmartImageCrop:
             "resolution_mode": (["Automatic", "Manual"], {"default": "Automatic"}),
             
             # Simplified Resolution Controls
-            "max_resolution": ("INT", {"default": 2048, "min": 256, "max": 16384, "step": 64, "tooltip": "MAX LIMIT: If the cropped area is larger than this, it will be SCALED DOWN so its longest side equals this value."}),
+            "max_resolution": ("INT", {"default": 1536, "min": 256, "max": 16384, "step": 64, "tooltip": "MAX LIMIT: If the cropped area is larger than this, it will be SCALED DOWN so its longest side equals this value."}),
             "min_resolution": ("INT", {"default": 768, "min": 64, "max": 2048, "step": 64, "tooltip": "MIN LIMIT: If the cropped area is smaller than this, it will be SCALED UP so its longest side equals this value."}),
             
             # Manual Mode controls

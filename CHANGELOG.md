@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.2
+
+- Smart Image Crop: `max_resolution` now defaults to 1536 for newly added nodes. Saved workflows keep their settings.
+- FLUX.2 Klein 4B workflow: `min_resolution` is now 768, for faster small edits and lower VRAM use.
+
 ## 2.1.1
 
 - FLUX.2 Klein 4B workflow: `max_resolution` is now 1536, for faster edits on large masks and lower-VRAM cards.
