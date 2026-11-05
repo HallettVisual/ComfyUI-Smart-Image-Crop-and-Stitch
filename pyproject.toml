@@ -1,6 +1,6 @@
 [project]
 name = "smart-image-crop-and-stitch"
-version = "2.1.0"
+version = "2.1.1"
 description = "Mask-driven smart crop and stitch nodes for ComfyUI inpaint and edit workflows."
 readme = "README.md"
 requires-python = ">=3.10"

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.1
+
+- FLUX.2 Klein 4B workflow: `max_resolution` is now 1536, for faster edits on large masks and lower-VRAM cards.
+
 ## 2.1.0
 
 - Added `max_megapixels` to Smart Image Crop to limit the crop sent to the model on lower-VRAM cards. Off by default, so existing workflows behave the same.
