@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.3
+
+- Publish to the Comfy Registry automatically when the version changes.
+
 ## 2.1.2
 
 - Smart Image Crop: `max_resolution` now defaults to 1536 for newly added nodes. Saved workflows keep their settings.
