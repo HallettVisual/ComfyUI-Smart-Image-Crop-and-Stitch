@@ -137,6 +137,10 @@ Models:
 
 ComfyUI refuses to run a workflow that points at an image it cannot find, so do step 1 first, or pick an image of your own once it's loaded.
 
+### Version 1 (old)
+
+`workflows/Smart Crop & Stitch v1 OLD - FLUX.2 Klein 4B.json`: the original v1 workflow on the same FLUX.2 Klein 4B models. It uses only Smart Image Crop and Smart Image Stitcher, with ComfyUI's own Mask Editor on a regular Load Image node: right-click the image, choose **Open in MaskEditor**, paint, and save. It needs [rgthree-comfy](https://github.com/rgthree/rgthree-comfy) for its Image Comparer.
+
 ## More workflows
 
 The Smart Crop & Stitch Workflow Pack has a tuned workflow for each of FLUX.2 Klein 9B and 4B, FLUX 3 Klein, Qwen Image 2.1 with a cropped reference image, and MOSS-Image Edit:
